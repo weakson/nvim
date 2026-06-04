@@ -22,5 +22,5 @@ nvim
 
 * Last pull this directory to your ~/.config/nvim/
 ```bash
-git pull https://github.com/weakson/nvim.git
+git clone https://github.com/weakson/nvim.git
 ```
