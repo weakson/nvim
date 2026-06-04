@@ -3,23 +3,45 @@
 -- Add any additional keymaps here
 
 -- 編譯 C++ 檔案，並在終端視窗內顯示編譯訊息，按 Enter 可關閉
+-- function CompileCpp()
+--     vim.cmd("w")
+--     local filename = vim.fn.expand("%:r") -- 獲取當前檔案名稱（無副檔名）
+--     local cmd = string.format("g++ %s.cpp", filename)
+-- 
+--     -- 開啟終端視窗來執行編譯
+--     -- vim.cmd("botright 10split")  -- 底部開一個 10 行高的 split 視窗
+--     -- vim.cmd("setlocal winfixheight")
+--     vim.cmd("split")
+--     vim.cmd("term " .. cmd .. " ; echo '按 Enter 鍵關閉視窗'") -- 顯示訊息並等待輸入
+-- 
+--     vim.fn.jobstart(cmd, {
+--         stdout_buffered = true,
+--         stderr_buffered = true,
+--         on_exit = function(job_id, exit_code, event)
+--             if exit_code == 0 then -- 如果編譯成功
+--                 vim.cmd("startinsert") -- 進入 Insert 模式
+--             end
+--         end,
+--     })
+-- end
+
 function CompileCpp()
     vim.cmd("w")
-    local filename = vim.fn.expand("%:r") -- 獲取當前檔案名稱（無副檔名）
-    local cmd = string.format("g++ %s.cpp", filename)
+    local filename = vim.fn.expand("%:r")
+    -- 直接呼叫 g++，不經過 shell 
+    local cmd = { "g++", filename .. ".cpp"}
 
-    -- 開啟終端視窗來執行編譯
-    -- vim.cmd("botright 10split")  -- 底部開一個 10 行高的 split 視窗
-    -- vim.cmd("setlocal winfixheight")
-    vim.cmd("split")
-    vim.cmd("term " .. cmd .. " ; echo '按 Enter 鍵關閉視窗'") -- 顯示訊息並等待輸入
-
+    print("Compiling...") -- 提示開始編譯
+    
+    -- 使用非同步 job，完全不會阻塞 Neovim UI
     vim.fn.jobstart(cmd, {
-        stdout_buffered = true,
-        stderr_buffered = true,
-        on_exit = function(job_id, exit_code, event)
-            if exit_code == 0 then -- 如果編譯成功
-                vim.cmd("startinsert") -- 進入 Insert 模式
+        on_exit = function(_, exit_code, _)
+            if exit_code == 0 then
+                print("✨ Compile Complete")
+            else
+                print("❌ Compile Error")
+                -- 只有失敗時，才開視窗看錯誤訊息（這樣平常開發最快）
+                vim.cmd("split | term g++ " .. filename .. ".cpp")
             end
         end,
     })
